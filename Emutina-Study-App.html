@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sofanit -Study - App</title>
+<!-- Load Tailwind CSS for modern component styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Amasis MT Pro"', 'Inter', 'sans-serif'],
+                },
+                colors: {
+                    headerPink: '#ec4899', 
+                    headerPinkDark: '#be185d',
+                    brightGreen: '#00FF00', 
+                }
+            }
+        }
+    }
+</script>
+<style>
+  body {
+    font-family: '"Amasis MT Pro"', 'Inter', sans-serif; 
+    background: linear-gradient(to bottom right, #a2c8f8, #f0f4f7);
+    margin: 0;
+    padding: 30px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .main-title {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 800;
+    color: #2c5282;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    gap: 25px;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 600px;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 4px solid #4299e1;
+  }
+  
+  .card-header {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+    background-color: #ec4899; 
+    display: flex;
+    justify-content: center; /* Vertically center content group */
+    align-items: center;     /* Horizontally center content */
+    flex-direction: column;  /* Stack items vertically */
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 10px;
+  }
+
+  .profile-pic { display: none; }
+
+  .card-content {
+    padding: 20px 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative; 
+  }
+
+  .card-content h3 {
+    margin: 0 0 15px 0;
+    color: #2c5282;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .quiz-options button {
+    transition: all 0.2s ease-in-out;
+  }
+  .quiz-options button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .modal-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    padding: 20px;
+    box-sizing: border-box;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 90%;
+    width: 300px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 2px solid #f6ad55;
+    align-self: center;
+    justify-self: center;
+  }
+
+  .scrollable-students {
+      max-height: 250px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+  }
+
+  /* Timer Display CSS - Removed absolute positioning to allow flow in flex container */
+  #quizTimerDisplay {
+    z-index: 15;
+    margin-bottom: 5px; /* Space between timer and title */
+    min-width: 80px;
+    text-align: center;
+  }
+  
+  @media (min-width: 768px) {
+    .card {
+      max-width: 380px;
+      height: 600px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+      border: 4px solid #4299e1;
+    }
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+  }
+</style>
+</head>
+<body>
+
+  <h1 class="main-title">⭐ Sofanit -Study - App ⭐</h1>
+
+  <div class="card-container">
+    <div class="card" id="quizCard">
+      <div class="card-header">
+        <img src="https://placehold.co/400x150/ec4899/ffffff?text=Ready+to+Learn!" alt="A bright, colorful classroom scene" class="card-image hidden">
+        
+        <!-- Timer is now positioned first in the flex column (Top Center) -->
+        <div id="quizTimerDisplay" class="text-lg font-bold text-white bg-green-500 px-3 py-1 rounded-full shadow-lg hidden">
+          01:00
+        </div>
+
+        <!-- Header Title is below timer (Bottom Center of header) -->
+        <div id="headerTitle" class="text-2xl font-extrabold tracking-wide text-center mt-2">Welcome! Sign In</div>
+      </div>
+
+      <div class="card-content" id="quizApp"></div>
+      
+      <div id="passwordModal" class="modal-bg">
+        <div class="modal-content transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+          <h4 id="modalTitle" class="text-xl font-bold text-gray-800 mb-4 text-center">Admin Password Required</h4>
+          <p id="modalMessage" class="text-gray-600 mb-4 text-sm text-center">To access the Admin Dashboard or reset a quiz, please enter the special password.</p>
+          <input type="password" id="passwordInput" class="w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:border-yellow-500 mb-4 text-lg" placeholder="Enter admin123">
+          <div class="flex justify-end space-x-3">
+            <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+            <button onclick="checkAdminPassword()" id="modalActionButton" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-150">Access Dashboard</button>
+          </div>
+          <p id="passwordError" class="text-red-500 text-sm mt-3 hidden text-center">Incorrect password. Try again!</p>
+        </div>
+      </div>
+      
+      <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-between space-x-2">
+        <button id="resetQuizButton" class="w-full bg-red-400 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-150 ease-in-out text-sm flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H6a1 1 0 010-2H4a1 1 0 01-1-1zm10 12a1 1 0 00-1 1v2.101a7.002 7.002 0 01-11.601 2.566 1 1 0 101.885.666A5.002 5.002 0 0014.001 13H14a1 1 0 000 2h2a1 1 0 001-1v-2a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          Admin Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isAuthenticated = false;
+    let currentUser = null; 
+    let mockUsers = []; 
+    const STORAGE_KEY = 'eduna_quiz_users';
+    const SETTINGS_KEY = 'eduna_quiz_settings';
+    const SUCCESS_THRESHOLD = 8; 
+
+    let currentSubject = '';
+    let currentLevel = 0;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let quizFinished = false;
+    const adminPassword = "admin123";
+    let userAnswers = {}; 
+
+    let timerInterval = null;
+    let quizSettings = {
+        timerEnabled: true,
+        defaultTimePerQuestion: 60 
+    };
+    let timeLeft = 0;
+    let pendingAdminAction = ''; 
+
+    function loadUsers() {
+        try {
+            const userData = localStorage.getItem(STORAGE_KEY);
+            if (userData) mockUsers = JSON.parse(userData);
+            if (!mockUsers.some(u => u.username === 'admin')) {
+                 mockUsers.unshift({ 
+                    username: "admin", 
+                    password: adminPassword,
+                    name: "Admin User", 
+                    email: "admin@eduna.com",
+                    grade: "N/A",
+                    quizzesTaken: 0,
+                    lastAttempt: null,
+                    levelProgress: {} 
+                });
+            }
+            mockUsers.forEach(user => {
+                if (!user.levelProgress) user.levelProgress = {};
+                if (!user.name) user.name = user.username.split('@')[0]; 
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    function loadSettings() {
+        try {
+            const settingsData = localStorage.getItem(SETTINGS_KEY);
+            if (settingsData) quizSettings = JSON.parse(settingsData);
+        } catch (e) { console.error(e); }
+    }
+
+    function saveUsers() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockUsers));
+    }
+    
+    function saveSettings() {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(quizSettings));
+    }
+
+    // --- Quiz Data Structure (Fully Populated per Grade 1 MD Curriculum) ---
+    var quizData = {
+      "Math": {
+        1: [ // Basic Addition/Subtraction (0-10)
+          { question: "What is 2 + 2?", options: ["4", "5", "3"], answer: "4", hint: "Fingers on one hand minus thumb." },
+          { question: "Count the dots: ● ● ●", options: ["2", "3", "4"], answer: "3", hint: "One, two..." },
+          { question: "5 - 1 = ?", options: ["4", "6", "5"], answer: "4", hint: "One less than five." },
+          { question: "Which number is greater: 2 or 8?", options: ["2", "8", "Same"], answer: "8", hint: "More cookies." },
+          { question: "How many sides does a triangle have?", options: ["3", "4", "5"], answer: "3", hint: "Tri means three." },
+          { question: "What comes next: 1, 2, 3, _?", options: ["4", "5", "6"], answer: "4", hint: "Keep counting." },
+          { question: "3 + 0 = ?", options: ["0", "3", "30"], answer: "3", hint: "Adding nothing." },
+          { question: "Which shape is round?", options: ["Square", "Circle", "Box"], answer: "Circle", hint: "Like a ball." },
+          { question: "4 + 1 = ?", options: ["4", "5", "6"], answer: "5", hint: "High five." },
+          { question: "How many eyes do you have?", options: ["1", "2", "3"], answer: "2", hint: "Look in the mirror." }
+        ],
+        2: [ // Sums to 20, Intro to Money & Time
+          { question: "What is 10 + 5?", options: ["15", "50", "5"], answer: "15", hint: "One ten and five ones." },
+          { question: "Which coin is brown?", options: ["Dime", "Penny", "Nickel"], answer: "Penny", hint: "Worth 1 cent." },
+          { question: "12 - 2 = ?", options: ["10", "14", "1"], answer: "10", hint: "Take away the ones." },
+          { question: "Identify the Dime.", options: ["Small silver", "Big silver", "Copper"], answer: "Small silver", hint: "Worth 10 cents." },
+          { question: "What time is it when the little hand is on 3 and big hand on 12?", options: ["3:00", "12:00", "3:30"], answer: "3:00", hint: "O'clock." },
+          { question: "7 + 7 = ?", options: ["14", "12", "10"], answer: "14", hint: "Double it." },
+          { question: "How many cents is a Nickel?", options: ["1", "5", "10"], answer: "5", hint: "Count by fives." },
+          { question: "What is 20 - 10?", options: ["30", "10", "5"], answer: "10", hint: "Half of twenty." },
+          { question: "Count by 10s: 10, 20, 30, _", options: ["31", "40", "50"], answer: "40", hint: "Four tens." },
+          { question: "Which is a 3D shape?", options: ["Square", "Cube", "Circle"], answer: "Cube", hint: "Like a box." }
+        ],
+        3: [ // Number Lines & Geometry 20%
+          { question: "Number Line: Start at 5. Hop forward 3. Where are you?", options: ["7", "8", "9"], answer: "8", hint: "5 + 3." },
+          { question: "How many corners does a square have?", options: ["3", "4", "5"], answer: "4", hint: "Count them." },
+          { question: "8 + 9 = ?", options: ["16", "17", "18"], answer: "17", hint: "Almost 9+9." },
+          { question: "Number Line: Start at 10. Hop back 2.", options: ["8", "12", "9"], answer: "8", hint: "10 minus 2." },
+          { question: "Which shape has 4 equal sides?", options: ["Rectangle", "Square", "Triangle"], answer: "Square", hint: "Box shape." },
+          { question: "What is a Quarter worth?", options: ["10 cents", "25 cents", "50 cents"], answer: "25 cents", hint: "Big silver coin." },
+          { question: "The clock shows half past 2. What time is it?", options: ["2:00", "2:30", "3:00"], answer: "2:30", hint: "Halfway." },
+          { question: "Geometry: A ball is a...", options: ["Circle", "Sphere", "Cube"], answer: "Sphere", hint: "3D round shape." },
+          { question: "3 + 3 + 3 = ?", options: ["6", "9", "12"], answer: "9", hint: "Skip count by 3." },
+          { question: "Is 15 Odd or Even?", options: ["Odd", "Even"], answer: "Odd", hint: "Ends in 5." }
+        ],
+        4: [ // 3-Number Addition & Measurement
+          { question: "Add: 4 + 4 + 2", options: ["8", "10", "12"], answer: "10", hint: "4+4 is 8, then add 2." },
+          { question: "Add: 5 + 5 + 5", options: ["10", "15", "20"], answer: "15", hint: "Count by 5s." },
+          { question: "Add: 8 + 2 + 3", options: ["10", "13", "15"], answer: "13", hint: "Make a ten first (8+2)." },
+          { question: "How many inches in a foot?", options: ["10", "12", "100"], answer: "12", hint: "Look at a ruler." },
+          { question: "Add: 6 + 4 + 5", options: ["10", "15", "20"], answer: "15", hint: "Make a ten (6+4)." },
+          { question: "Geometry: How many faces does a cube have?", options: ["4", "6", "8"], answer: "6", hint: "Like a dice." },
+          { question: "Time: 1 hour = ___ minutes?", options: ["30", "60", "100"], answer: "60", hint: "Full circle." },
+          { question: "Add: 10 + 10 + 10", options: ["20", "30", "40"], answer: "30", hint: "Three tens." },
+          { question: "Which is heavier? A car or a feather?", options: ["Car", "Feather"], answer: "Car", hint: "Big metal." },
+          { question: "Add: 7 + 3 + 4", options: ["10", "14", "17"], answer: "14", hint: "7+3 makes 10." }
+        ],
+        5: [ // Advanced Review (Word Problems, Geo, Money)
+          { question: "Ben has 2 dimes and 1 penny. How much money?", options: ["3 cents", "21 cents", "25 cents"], answer: "21 cents", hint: "10 + 10 + 1." },
+          { question: "8 + 9 + 5 = ?", options: ["20", "22", "25"], answer: "22", hint: "8+9=17, 17+5=..." },
+          { question: "Geometry: Partition a circle into 2 equal parts. Each is a...", options: ["Quarter", "Half", "Whole"], answer: "Half", hint: "1 out of 2." },
+          { question: "Jen had 20 cookies. She gave 5 away. How many left?", options: ["10", "15", "25"], answer: "15", hint: "Subtraction." },
+          { question: "Identify the shape: 6 sides.", options: ["Hexagon", "Pentagon", "Square"], answer: "Hexagon", hint: "Hex means 6." },
+          { question: "Add: 12 + 12", options: ["20", "24", "22"], answer: "24", hint: "Double 12." },
+          { question: "Money: How many quarters make 1 dollar?", options: ["2", "4", "10"], answer: "4", hint: "25, 50, 75, 100." },
+          { question: "Time: If it is 2:00, what time is it in 1 hour?", options: ["3:00", "1:00", "2:30"], answer: "3:00", hint: "Add 1 hour." },
+          { question: "Place Value: How many tens in 56?", options: ["5", "6", "50"], answer: "5", hint: "First digit." },
+          { question: "Geometry: Are all rectangles squares?", options: ["Yes", "No"], answer: "No", hint: "Some are long." }
+        ],
+        6: Array(10).fill({ question: "Math Level 6 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep working hard!" }),
+        7: Array(10).fill({ question: "Math Level 7 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep working hard!" }),
+        8: Array(10).fill({ question: "Math Level 8 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep working hard!" }),
+        9: Array(10).fill({ question: "Math Level 9 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep working hard!" }),
+        10: Array(10).fill({ question: "Math Level 10 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep working hard!" })
+      },
+      "Reading": {
+        1: [ // Phonics & Alphabet
+          { question: "What letter does 'Dog' start with?", options: ["C", "D", "G"], answer: "D", hint: "Duh sound." },
+          { question: "Which is a lowercase letter?", options: ["A", "M", "t"], answer: "t", hint: "Small letter." },
+          { question: "Find the vowel.", options: ["b", "c", "a"], answer: "a", hint: "a, e, i, o, u." },
+          { question: "What sound does 'S' make?", options: ["Buh", "Sss", "Mmm"], answer: "Sss", hint: "Snake." },
+          { question: "Rhyme time: Cat and...", options: ["Dog", "Hat", "Car"], answer: "Hat", hint: "Same ending sound." },
+          { question: "Which word is a number?", options: ["Blue", "Ten", "Run"], answer: "Ten", hint: "10." },
+          { question: "Opposite of 'Up'?", options: ["Down", "Left", "Right"], answer: "Down", hint: "To the floor." },
+          { question: "What letter comes after B?", options: ["A", "C", "D"], answer: "C", hint: "ABC." },
+          { question: "Is 'Z' at the beginning or end of the alphabet?", options: ["Beginning", "End"], answer: "End", hint: "Last one." },
+          { question: "How many letters in 'Me'?", options: ["1", "2", "3"], answer: "2", hint: "Count them." }
+        ],
+        2: [ // Blends & Sight Words
+          { question: "What sound does 'Sh' make?", options: ["Ch", "Shh", "Th"], answer: "Shh", hint: "Quiet sound." },
+          { question: "Complete: The cat is ___ the hat.", options: ["in", "run", "blue"], answer: "in", hint: "Location." },
+          { question: "Rhyme: Frog and...", options: ["Log", "Pig", "Fly"], answer: "Log", hint: "Og sound." },
+          { question: "Which is a color word?", options: ["Big", "Red", "Run"], answer: "Red", hint: "Like an apple." },
+          { question: "Sight word: THE.", options: ["Teh", "The", "Het"], answer: "The", hint: "T-H-E." },
+          { question: "Opposite of 'Hot'?", options: ["Cold", "Warm", "Sun"], answer: "Cold", hint: "Ice." },
+          { question: "What starts with 'Bl'?", options: ["Blue", "Red", "Cat"], answer: "Blue", hint: "Color." },
+          { question: "Read: 'I see a dog.' Who do I see?", options: ["Cat", "Dog", "Bird"], answer: "Dog", hint: "Barking animal." },
+          { question: "Plural means...", options: ["One", "More than one"], answer: "More than one", hint: "Many." },
+          { question: "Add 's' to make plural: Cat -> ?", options: ["Cates", "Cats", "Cat"], answer: "Cats", hint: "Two of them." }
+        ],
+        3: [ // Sentences & Comprehension
+          { question: "A sentence starts with a...", options: ["Period", "Capital Letter", "Number"], answer: "Capital Letter", hint: "Big letter." },
+          { question: "A sentence ends with a...", options: ["Period", "Letter", "Comma"], answer: "Period", hint: "Dot." },
+          { question: "Who writes the words in a book?", options: ["Author", "Illustrator"], answer: "Author", hint: "Writer." },
+          { question: "Who draws the pictures?", options: ["Author", "Illustrator"], answer: "Illustrator", hint: "Artist." },
+          { question: "The 'Setting' is...", options: ["Who", "Where/When", "What"], answer: "Where/When", hint: "Place." },
+          { question: "Read: 'The sun is hot.' What is hot?", options: ["Moon", "Sun", "Star"], answer: "Sun", hint: "In the sky." },
+          { question: "Noun is a...", options: ["Action", "Person/Place/Thing"], answer: "Person/Place/Thing", hint: "Naming word." },
+          { question: "Verb is a...", options: ["Action", "Color", "Shape"], answer: "Action", hint: "Doing word." },
+          { question: "Which is a Noun?", options: ["Run", "Ball", "Blue"], answer: "Ball", hint: "You can touch it." },
+          { question: "Which is a Verb?", options: ["Jump", "Cat", "Red"], answer: "Jump", hint: "You do it." }
+        ],
+        4: [ // Grammar & Story Elements
+          { question: "Past tense of 'Run'?", options: ["Runned", "Ran"], answer: "Ran", hint: "Yesterday I..." },
+          { question: "Opposite of 'Happy'?", options: ["Sad", "Glad", "Fun"], answer: "Sad", hint: "Tears." },
+          { question: "Fiction means...", options: ["Real", "Make-believe"], answer: "Make-believe", hint: "Story." },
+          { question: "Non-fiction means...", options: ["Real/True", "Fake"], answer: "Real/True", hint: "Facts." },
+          { question: "Compound word: Rain + Bow =", options: ["Rainy", "Rainbow", "Bows"], answer: "Rainbow", hint: "Colors." },
+          { question: "Compound word: Pan + Cake =", options: ["Pan", "Cake", "Pancake"], answer: "Pancake", hint: "Breakfast." },
+          { question: "Use a '?' for a...", options: ["Statement", "Question", "Yell"], answer: "Question", hint: "Asking." },
+          { question: "Use a '!' for...", options: ["Sleepy", "Excitement", "Question"], answer: "Excitement", hint: "Yelling." },
+          { question: "Characters are...", options: ["The place", "The people/animals"], answer: "The people/animals", hint: "Who is in the story." },
+          { question: "Which word rhymes with 'Night'?", options: ["Bright", "Day", "Net"], answer: "Bright", hint: "Ight sound." }
+        ],
+        5: [ // Advanced Reading Grade 1
+          { question: "Main Idea means...", options: ["First word", "What story is mostly about", "The end"], answer: "What story is mostly about", hint: "Big picture." },
+          { question: "Retell means...", options: ["Read again", "Tell story in own words", "Stop"], answer: "Tell story in own words", hint: "Summary." },
+          { question: "Synonym for 'Small'?", options: ["Big", "Little", "Huge"], answer: "Little", hint: "Same meaning." },
+          { question: "Antonym for 'Fast'?", options: ["Quick", "Slow", "Run"], answer: "Slow", hint: "Opposite." },
+          { question: "Identify the Adjective: 'Red ball'", options: ["Ball", "Red"], answer: "Red", hint: "Describing word." },
+          { question: "Syllables in 'Banana'?", options: ["1", "2", "3"], answer: "3", hint: "Ba-na-na." },
+          { question: "ABC Order: Apple, Cat, Bat", options: ["Apple, Bat, Cat", "Cat, Bat, Apple"], answer: "Apple, Bat, Cat", hint: "A, B, C." },
+          { question: "Contraction: Do not =", options: ["Don't", "Dont", "Do'nt"], answer: "Don't", hint: "Apostrophe." },
+          { question: "Identify the problem: 'The tire is flat.'", options: ["Tire is flat", "Car goes fast"], answer: "Tire is flat", hint: "Something wrong." },
+          { question: "Prediction means...", options: ["Guess what happens next", "Read the end"], answer: "Guess what happens next", hint: "Think ahead." }
+        ],
+        6: Array(10).fill({ question: "Reading Level 6 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep reading!" }),
+        7: Array(10).fill({ question: "Reading Level 7 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep reading!" }),
+        8: Array(10).fill({ question: "Reading Level 8 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep reading!" }),
+        9: Array(10).fill({ question: "Reading Level 9 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep reading!" }),
+        10: Array(10).fill({ question: "Reading Level 10 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep reading!" })
+      },
+      "Science": {
+        1: [ // Living/Non-Living
+          { question: "Is a rock living?", options: ["Yes", "No"], answer: "No", hint: "Does it grow?" },
+          { question: "Do plants need water?", options: ["Yes", "No"], answer: "Yes", hint: "Thirsty." },
+          { question: "Is a cat living?", options: ["Yes", "No"], answer: "Yes", hint: "It breathes." },
+          { question: "What do animals need?", options: ["Toys", "Food/Water", "Candy"], answer: "Food/Water", hint: "Survival." },
+          { question: "Where do plants grow?", options: ["Sky", "Soil/Dirt", "Car"], answer: "Soil/Dirt", hint: "Ground." },
+          { question: "Is a car living?", options: ["Yes", "No"], answer: "No", hint: "Machine." },
+          { question: "Living things...", options: ["Grow", "Stay same"], answer: "Grow", hint: "Change size." },
+          { question: "Which is living?", options: ["Tree", "Table", "Phone"], answer: "Tree", hint: "Nature." },
+          { question: "Non-living things...", options: ["Eat", "Do not eat"], answer: "Do not eat", hint: "No mouth." },
+          { question: "Baby dogs are called...", options: ["Kittens", "Puppies"], answer: "Puppies", hint: "Small dogs." }
+        ],
+        2: [ // Plants & Animals
+          { question: "What part of plant is in ground?", options: ["Flower", "Roots", "Leaf"], answer: "Roots", hint: "Holds it down." },
+          { question: "What makes seeds?", options: ["Roots", "Flower/Fruit", "Stem"], answer: "Flower/Fruit", hint: "Colorful part." },
+          { question: "Animals that eat meat are...", options: ["Carnivores", "Herbivores"], answer: "Carnivores", hint: "T-Rex." },
+          { question: "Animals that eat plants are...", options: ["Carnivores", "Herbivores"], answer: "Herbivores", hint: "Cow." },
+          { question: "Where does a fish live?", options: ["Tree", "Water", "Nest"], answer: "Water", hint: "Swim." },
+          { question: "What covers a bird?", options: ["Fur", "Feathers", "Scales"], answer: "Feathers", hint: "Soft and light." },
+          { question: "What covers a bear?", options: ["Fur", "Feathers", "Scales"], answer: "Fur", hint: "Warm hair." },
+          { question: "A habitat is a...", options: ["Home", "Food", "Toy"], answer: "Home", hint: "Where they live." },
+          { question: "Plants need light from...", options: ["Moon", "Sun", "Lamp"], answer: "Sun", hint: "Daytime." },
+          { question: "Do fish breathe air?", options: ["Yes", "No, water", "Maybe"], answer: "No, water", hint: "Gills." }
+        ],
+        3: [ // Weather & Seasons
+          { question: "How many seasons?", options: ["2", "4", "12"], answer: "4", hint: "Winter, Spring..." },
+          { question: "In winter it is...", options: ["Hot", "Cold", "Warm"], answer: "Cold", hint: "Snow." },
+          { question: "In summer it is...", options: ["Hot", "Cold", "Freezing"], answer: "Hot", hint: "Beach." },
+          { question: "What falls from clouds?", options: ["Rain", "Rocks", "Sand"], answer: "Rain", hint: "Wet." },
+          { question: "Wind is moving...", options: ["Water", "Air", "Dirt"], answer: "Air", hint: "Blows." },
+          { question: "Leaves fall in...", options: ["Spring", "Fall/Autumn", "Winter"], answer: "Fall/Autumn", hint: "Orange leaves." },
+          { question: "Flowers bloom in...", options: ["Winter", "Spring", "Fall"], answer: "Spring", hint: "New life." },
+          { question: "Thermometer measures...", options: ["Rain", "Temperature", "Wind"], answer: "Temperature", hint: "Hot or cold." },
+          { question: "Lightning comes with...", options: ["Sun", "Thunder", "Snow"], answer: "Thunder", hint: "Storm." },
+          { question: "The sun provides...", options: ["Water", "Heat & Light", "Air"], answer: "Heat & Light", hint: "Warmth." }
+        ],
+        4: [ // Earth & Space
+          { question: "We live on planet...", options: ["Mars", "Earth", "Venus"], answer: "Earth", hint: "Home." },
+          { question: "The sun is a...", options: ["Planet", "Star", "Moon"], answer: "Star", hint: "Ball of gas." },
+          { question: "The moon comes out at...", options: ["Noon", "Night", "Morning"], answer: "Night", hint: "Dark." },
+          { question: "Earth is made of...", options: ["Land & Water", "Candy", "Gas"], answer: "Land & Water", hint: "Blue and Green." },
+          { question: "Gravity pulls things...", options: ["Up", "Down", "Sideways"], answer: "Down", hint: "Drop it." },
+          { question: "Rocks are...", options: ["Soft", "Hard", "Liquid"], answer: "Hard", hint: "Stone." },
+          { question: "Water covers most of Earth.", options: ["True", "False"], answer: "True", hint: "Oceans." },
+          { question: "Does the moon shine its own light?", options: ["Yes", "No"], answer: "No", hint: "Reflection." },
+          { question: "Day is when we see the...", options: ["Moon", "Sun"], answer: "Sun", hint: "Light." },
+          { question: "A globe is a model of...", options: ["Moon", "Earth", "Sun"], answer: "Earth", hint: "Round map." }
+        ],
+        5: [ // Matter & Forces
+          { question: "Solid, Liquid, and...", options: ["Gas", "Rock", "Ice"], answer: "Gas", hint: "States of matter." },
+          { question: "Ice is water as a...", options: ["Solid", "Liquid", "Gas"], answer: "Solid", hint: "Hard." },
+          { question: "Water is a...", options: ["Solid", "Liquid", "Gas"], answer: "Liquid", hint: "Pour." },
+          { question: "Air is a...", options: ["Solid", "Liquid", "Gas"], answer: "Gas", hint: "Invisible." },
+          { question: "A force is a...", options: ["Push or Pull", "Sleep", "Eat"], answer: "Push or Pull", hint: "Movement." },
+          { question: "Magnets stick to...", options: ["Plastic", "Metal/Iron", "Wood"], answer: "Metal/Iron", hint: "Fridge." },
+          { question: "To move a wagon you...", options: ["Pull", "Lift", "Eat"], answer: "Pull", hint: "Handle." },
+          { question: "Which is heavy?", options: ["Feather", "Elephant"], answer: "Elephant", hint: "Big." },
+          { question: "Sink or Float: Rock", options: ["Sink", "Float"], answer: "Sink", hint: "Heavy." },
+          { question: "Sink or Float: Boat", options: ["Sink", "Float"], answer: "Float", hint: "On top." }
+        ],
+        6: Array(10).fill({ question: "Science Level 6 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep exploring!" }),
+        7: Array(10).fill({ question: "Science Level 7 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep exploring!" }),
+        8: Array(10).fill({ question: "Science Level 8 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep exploring!" }),
+        9: Array(10).fill({ question: "Science Level 9 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep exploring!" }),
+        10: Array(10).fill({ question: "Science Level 10 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep exploring!" })
+      },
+      "Computer Science": {
+        1: [ // What is a computer?
+          { question: "What is a computer?", options: ["Toy", "Machine", "Food"], answer: "Machine", hint: "Electronic." },
+          { question: "Is a tablet a computer?", options: ["Yes", "No"], answer: "Yes", hint: "Handheld." },
+          { question: "Computers need ___ to work.", options: ["Water", "Electricity", "Sun"], answer: "Electricity", hint: "Power." },
+          { question: "We use a mouse to...", options: ["Click", "Type", "Listen"], answer: "Click", hint: "Point." },
+          { question: "We use a keyboard to...", options: ["Click", "Type", "Watch"], answer: "Type", hint: "Letters." },
+          { question: "The screen shows...", options: ["Pictures", "Smells", "Tastes"], answer: "Pictures", hint: "Display." },
+          { question: "To turn it on, press...", options: ["Power Button", "Spacebar", "Screen"], answer: "Power Button", hint: "Start." },
+          { question: "Headphones are for...", options: ["Listening", "Talking"], answer: "Listening", hint: "Ears." },
+          { question: "Do computers eat food?", options: ["Yes", "No"], answer: "No", hint: "Machine." },
+          { question: "Be gentle with computers.", options: ["True", "False"], answer: "True", hint: "Don't break." }
+        ],
+        2: [ // Input vs Output
+          { question: "Input means...", options: ["In", "Out"], answer: "In", hint: "Enter." },
+          { question: "Output means...", options: ["In", "Out"], answer: "Out", hint: "Exit." },
+          { question: "Keyboard is...", options: ["Input", "Output"], answer: "Input", hint: "Type in." },
+          { question: "Screen is...", options: ["Input", "Output"], answer: "Output", hint: "See out." },
+          { question: "Speakers are...", options: ["Input", "Output"], answer: "Output", hint: "Hear out." },
+          { question: "Mouse click is...", options: ["Input", "Output"], answer: "Input", hint: "Action." },
+          { question: "Printer is...", options: ["Input", "Output"], answer: "Output", hint: "Paper comes out." },
+          { question: "Microphone is...", options: ["Input", "Output"], answer: "Input", hint: "Voice in." },
+          { question: "Typing a letter is...", options: ["Input", "Output"], answer: "Input", hint: "Entering words." },
+          { question: "Playing music is...", options: ["Input", "Output"], answer: "Output", hint: "Sound." }
+        ],
+        3: [ // Sequencing & Algorithms
+          { question: "An Algorithm is...", options: ["A dance", "A list of steps", "A bug"], answer: "A list of steps", hint: "Instructions." },
+          { question: "Sequence means...", options: ["In order", "Mixed up"], answer: "In order", hint: "1, 2, 3." },
+          { question: "First step to brush teeth?", options: ["Rinse", "Get brush", "Spit"], answer: "Get brush", hint: "Start." },
+          { question: "Robots follow...", options: ["Instructions/Code", "Feelings", "Dreams"], answer: "Instructions/Code", hint: "Rules." },
+          { question: "To make a sandwich, first...", options: ["Eat it", "Get bread"], answer: "Get bread", hint: "Step 1." },
+          { question: "If code is wrong, the robot...", options: ["Works fine", "Makes mistake", "Explodes"], answer: "Makes mistake", hint: "Bug." },
+          { question: "Programmers write...", options: ["Books", "Code", "Music"], answer: "Code", hint: "Software." },
+          { question: "Code tells computer...", options: ["What to do", "Nothing", "Jokes"], answer: "What to do", hint: "Instructions." },
+          { question: "Sequence: 1, 2, 3, _", options: ["5", "4", "A"], answer: "4", hint: "Next." },
+          { question: "Do robots think like us?", options: ["Yes", "No"], answer: "No", hint: "Only code." }
+        ],
+        4: [ // Safety & Loops
+          { question: "Keep passwords...", options: ["Secret", "Shared"], answer: "Secret", hint: "Private." },
+          { question: "A loop means...", options: ["Stop", "Repeat"], answer: "Repeat", hint: "Over and over." },
+          { question: "Don't talk to...", options: ["Strangers", "Parents"], answer: "Strangers", hint: "Online safety." },
+          { question: "Ask parents before downloading.", options: ["True", "False"], answer: "True", hint: "Permission." },
+          { question: "Is everything online true?", options: ["Yes", "No"], answer: "No", hint: "Be careful." },
+          { question: "Be ___ online.", options: ["Mean", "Nice/Kind"], answer: "Nice/Kind", hint: "Respect." },
+          { question: "Loop: Clap, Clap, Clap. It...", options: ["Repeats", "Stops"], answer: "Repeats", hint: "Again and again." },
+          { question: "Infinite loop means...", options: ["Stops soon", "Never stops"], answer: "Never stops", hint: "Forever." },
+          { question: "Personal info is...", options: ["Name/Address", "Favorite color"], answer: "Name/Address", hint: "Private." },
+          { question: "If you see something bad...", options: ["Hide it", "Tell an adult"], answer: "Tell an adult", hint: "Help." }
+        ],
+        5: [ // Debugging & Logic
+          { question: "A 'Bug' is a...", options: ["Insect", "Mistake in code"], answer: "Mistake in code", hint: "Error." },
+          { question: "Debugging means...", options: ["Fixing the mistake", "Adding bugs"], answer: "Fixing the mistake", hint: "Repair." },
+          { question: "If 1+1=3, there is a...", options: ["Bug", "Correct answer"], answer: "Bug", hint: "Wrong." },
+          { question: "Computer frozen? Try...", options: ["Restart", "Yell", "Hit it"], answer: "Restart", hint: "Reboot." },
+          { question: "Logic: If sunny, wear...", options: ["Coat", "Hat/Sunglasses"], answer: "Hat/Sunglasses", hint: "Hot." },
+          { question: "Logic: If raining, take...", options: ["Umbrella", "Swimsuit"], answer: "Umbrella", hint: "Wet." },
+          { question: "Testing code helps...", options: ["Find bugs", "Break it"], answer: "Find bugs", hint: "Check work." },
+          { question: "Code must be...", options: ["Messy", "Exact/Perfect"], answer: "Exact/Perfect", hint: "Precise." },
+          { question: "Arrow keys move...", options: ["Up/Down/Left/Right", "Nowhere"], answer: "Up/Down/Left/Right", hint: "Direction." },
+          { question: "Computers use ___ logic.", options: ["Binary (0/1)", "Magic"], answer: "Binary (0/1)", hint: "On/Off." }
+        ],
+        6: Array(10).fill({ question: "CS Level 6 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep coding!" }),
+        7: Array(10).fill({ question: "CS Level 7 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep coding!" }),
+        8: Array(10).fill({ question: "CS Level 8 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep coding!" }),
+        9: Array(10).fill({ question: "CS Level 9 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep coding!" }),
+        10: Array(10).fill({ question: "CS Level 10 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep coding!" })
+      }
+    };
+
+    const quizApp = document.getElementById('quizApp');
+    const headerTitle = document.getElementById('headerTitle');
+    const modal = document.getElementById('passwordModal');
+    const modalContent = document.getElementById('modalContent');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordError = document.getElementById('passwordError');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalActionButton = document.getElementById('modalActionButton');
+    const timerDisplay = document.getElementById('quizTimerDisplay');
+    const subjects = Object.keys(quizData);
+    
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+        return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+        timerDisplay.textContent = formatTime(timeLeft);
+        
+        // Timer color logic: Green (>=6m), Yellow (<6m & >=3m), Red (<3m)
+        // Note: Assuming a 10 min quiz for standard questions.
+        // For dynamic times, these hardcoded values might feel odd, but requested logic is specific.
+        
+        if (timeLeft >= 360) { // 6 minutes or more
+             timerDisplay.className = "text-lg font-bold text-white bg-green-500 px-3 py-1 rounded-full shadow-lg mb-2";
+        } else if (timeLeft >= 180) { // Between 3 and 6 minutes
+             timerDisplay.className = "text-lg font-bold text-black bg-yellow-400 px-3 py-1 rounded-full shadow-lg mb-2";
+        } else { // Less than 3 minutes
+             timerDisplay.className = "text-lg font-bold text-white bg-red-600 px-3 py-1 rounded-full shadow-lg mb-2";
+        }
+    }
+
+    function startTimer() {
+        if (!quizSettings.timerEnabled) {
+            timerDisplay.classList.add('hidden');
+            return;
+        }
+        stopTimer(); 
+        const numQuestions = quizData[currentSubject][currentLevel].length;
+        const initialTime = numQuestions * quizSettings.defaultTimePerQuestion;
+        timeLeft = initialTime; 
+        timerDisplay.classList.remove('hidden');
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                stopTimer();
+                alertMessage("Time's up! Submitting results.", 'bg-red-500');
+                renderResults(true); 
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerDisplay.classList.add('hidden');
+    }
+    
+    function handleSignIn() {
+      const username = document.getElementById('signInUsername').value;
+      const password = document.getElementById('signInPassword').value;
+      const user = mockUsers.find(u => u.email === username && u.password === password);
+      if (user && user.username !== 'admin') { 
+        isAuthenticated = true;
+        currentUser = user; 
+        alertMessage(`Welcome back, ${currentUser.name}!`, 'bg-green-500');
+        renderWelcomeScreen();
+      } else {
+        alertMessage('Sign In failed. Check email and password.', 'bg-red-500');
+        document.getElementById('signInMessage').textContent = 'Invalid email or password.';
+        document.getElementById('signInMessage').classList.remove('hidden');
+      }
+    }
+
+    function handleSignUp() {
+      const name = document.getElementById('signUpName').value.trim(); 
+      const username = document.getElementById('signUpUsername').value; 
+      const password = document.getElementById('signUpPassword').value;
+      document.getElementById('signUpMessage').classList.add('hidden');
+      if (!name || !username || !password) {
+        document.getElementById('signUpMessage').textContent = 'All fields are required.';
+        document.getElementById('signUpMessage').classList.remove('hidden');
+        return;
+      }
+      if (!username.includes('@') || !username.includes('.')) {
+        document.getElementById('signUpMessage').textContent = 'Please enter a valid email address.';
+        document.getElementById('signUpMessage').classList.remove('hidden');
+        return;
+      }
+      if (mockUsers.filter(u => u.username !== 'admin').some(u => u.email === username)) {
+        document.getElementById('signUpMessage').textContent = 'An account with this email already exists.';
+        document.getElementById('signUpMessage').classList.remove('hidden');
+        return;
+      }
+      const newUser = { 
+        username: name.replace(/\s/g, '').toLowerCase(), 
+        password,
+        name,
+        email: username, 
+        grade: "1st Grade",
+        quizzesTaken: 0,
+        lastAttempt: null,
+        levelProgress: {} 
+      };
+      mockUsers.push(newUser);
+      saveUsers(); 
+      isAuthenticated = true;
+      currentUser = newUser;
+      alertMessage(`Account created! Welcome, ${currentUser.name}!`, 'bg-blue-500');
+      renderWelcomeScreen();
+    }
+
+    function renderAuthScreen() {
+      stopTimer();
+      headerTitle.textContent = "Welcome! Sign In";
+      quizApp.innerHTML = `
+        <div class="space-y-6 flex flex-col h-full justify-around">
+          <h3 class="text-2xl text-pink-600 font-bold">Log in to Start Learning</h3>
+          <form onsubmit="event.preventDefault(); handleSignIn()">
+            <div class="space-y-4">
+              <input type="email" id="signInUsername" placeholder="Your Email" required 
+                     class="w-full p-3 border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 text-lg">
+              <input type="password" id="signInPassword" placeholder="Password" required 
+                     class="w-full p-3 border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 text-lg">
+              <p id="signInMessage" class="text-red-500 text-sm hidden text-center"></p>
+            </div>
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg transform hover:scale-105 transition duration-200 text-lg mt-6">
+              Sign In
+            </button>
+          </form>
+          <p class="text-gray-600 text-sm text-center">
+            New here? 
+            <button onclick="renderSignUpForm()" class="text-pink-500 hover:text-pink-700 font-semibold underline transition duration-150">
+              Create an Account
+            </button>
+          </p>
+        </div>
+      `;
+    }
+
+    function renderSignUpForm() {
+      stopTimer();
+      headerTitle.textContent = "Create Account";
+      quizApp.innerHTML = `
+        <div class="space-y-6 flex flex-col h-full justify-around">
+          <h3 class="text-2xl text-pink-600 font-bold">Join the Learning Fun!</h3>
+          <form onsubmit="event.preventDefault(); handleSignUp()">
+            <div class="space-y-4">
+              <input type="text" id="signUpName" placeholder="Your Name" required 
+                     class="w-full p-3 border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 text-lg">
+              <input type="email" id="signUpUsername" placeholder="Your Email" required 
+                     class="w-full p-3 border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 text-lg">
+              <input type="password" id="signUpPassword" placeholder="Password" required 
+                     class="w-full p-3 border-2 border-pink-300 rounded-lg focus:outline-none focus:border-pink-500 text-lg">
+              <p id="signUpMessage" class="text-red-500 text-sm hidden text-center"></p>
+            </div>
+            <button type="submit" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-xl shadow-lg transform hover:scale-105 transition duration-200 text-lg mt-6">
+              Sign Up
+            </button>
+          </form>
+          <p class="text-gray-600 text-sm text-center">
+            <button onclick="renderAuthScreen()" class="text-pink-500 hover:text-pink-700 font-semibold underline transition duration-150">
+              ← Go back to Sign In
+            </button>
+          </p>
+        </div>
+      `;
+    }
+    
+    function openModal(actionType = 'dashboard') {
+      pendingAdminAction = actionType;
+      if (actionType === 'retake' || actionType === 'retake_level') {
+          modalTitle.textContent = "Admin Quiz Retake Required";
+          modalMessage.textContent = `Only an admin can authorize a quiz retake. Enter the password to reset this quiz for ${currentUser.name}.`;
+          modalActionButton.textContent = "Authorize Retake";
+      } else {
+          modalTitle.textContent = "Admin Dashboard Required";
+          modalMessage.textContent = "To access the Admin Dashboard, please enter the special password.";
+          modalActionButton.textContent = "Access Dashboard";
+      }
+      modal.style.display = 'flex';
+      passwordInput.value = ''; 
+      passwordError.classList.add('hidden');
+      setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+        passwordInput.focus();
+      }, 10);
+    }
+
+    function closeModal() {
+      modalContent.classList.remove('scale-100', 'opacity-100');
+      modalContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        passwordInput.value = '';
+        passwordError.classList.add('hidden');
+        pendingAdminAction = ''; 
+      }, 300);
+    }
+
+    function checkAdminPassword() {
+      const enteredPassword = passwordInput.value.trim();
+      if (enteredPassword === adminPassword) {
+        closeModal();
+        if (pendingAdminAction === 'retake' || pendingAdminAction === 'retake_level') {
+            startQuiz(currentSubject, currentLevel);
+            alertMessage("Quiz reset successful! Starting retake now.", 'bg-indigo-500');
+        } 
+        else if (pendingAdminAction === 'dashboard') {
+            renderAdminDashboard(); 
+        }
+        alertMessage("Admin Access Granted.", 'bg-indigo-500');
+      } else {
+        passwordError.textContent = 'Incorrect password. Try again!';
+        passwordError.classList.remove('hidden');
+        passwordInput.value = ''; 
+        passwordInput.focus();
+      }
+    }
+
+    function updateDefaultTimer() {
+        const timeInput = document.getElementById('defaultTimeInput');
+        let totalMinutesForQuiz = parseFloat(timeInput.value);
+        if (isNaN(totalMinutesForQuiz) || totalMinutesForQuiz <= 0) {
+            alertMessage("Please enter a valid number.", 'bg-orange-500');
+            return;
+        }
+        const totalSecondsForQuiz = Math.round(totalMinutesForQuiz * 60);
+        const secondsPerQuestion = totalSecondsForQuiz / 10; 
+        quizSettings.defaultTimePerQuestion = secondsPerQuestion;
+        saveSettings();
+        alertMessage(`Timer set to ${totalMinutesForQuiz} minutes for 10 questions.`, 'bg-green-500');
+        renderAdminDashboard(); 
+    }
+
+    function toggleTimer() {
+        quizSettings.timerEnabled = !quizSettings.timerEnabled;
+        saveSettings();
+        alertMessage(`Quiz Timer is now ${quizSettings.timerEnabled ? 'Enabled' : 'Disabled'}.`, 'bg-blue-500');
+        renderAdminDashboard(); 
+    }
+
+    function getSmartRecommendation(user) {
+        if (!user.lastAttempt) return "No quiz attempts yet.";
+        const score = user.lastAttempt.score;
+        const total = 10;
+        const percent = (score / total) * 100;
+        const name = user.name; 
+        if (percent >= 90) return `Great job, ${name}! Mastery achieved in ${user.lastAttempt.subject} Level ${user.lastAttempt.level}.`;
+        else if (percent >= 70) return `${name} performed well in ${user.lastAttempt.subject} Level ${user.lastAttempt.level}. Suggest practice.`;
+        else if (percent >= 50) return `${name} needs review in ${user.lastAttempt.subject} Level ${user.lastAttempt.level}.`;
+        else return `Low score for ${name} in ${user.lastAttempt.subject} Level ${user.lastAttempt.level}. Review basics.`;
+    }
+
+    function viewStudentProfile(email) {
+      stopTimer();
+      const user = mockUsers.find(u => u.email === email);
+      if (!user) return;
+      headerTitle.textContent = "Student Profile";
+      
+      let progressHTML = '';
+      const subjectsList = Object.keys(quizData);
+      let hasData = false;
+
+      subjectsList.forEach(subject => {
+          const userSubjectData = user.levelProgress && user.levelProgress[subject];
+          if (userSubjectData && Object.keys(userSubjectData).length > 0) {
+              hasData = true;
+              const sortedLevels = Object.keys(userSubjectData).sort((a,b) => Number(a) - Number(b));
+              progressHTML += `
+                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 mb-3">
+                    <h5 class="font-bold text-pink-600 mb-2 flex items-center">
+                        <span class="mr-2">📚</span> ${subject}
+                    </h5>
+                    <div class="grid grid-cols-5 gap-2">
+                        ${sortedLevels.map(lvl => {
+                            const score = userSubjectData[lvl];
+                            const isPass = score >= 8;
+                            const colorClass = isPass ? "bg-green-100 text-green-700 border-green-200" : "bg-red-50 text-red-600 border-red-100";
+                            return `
+                                <div class="flex flex-col items-center justify-center p-1 rounded border ${colorClass}">
+                                    <span class="text-[10px] uppercase font-bold text-gray-500">Lvl ${lvl}</span>
+                                    <span class="font-bold text-lg">${score}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+              `;
+          }
+      });
+
+      if (!hasData) {
+          progressHTML = `
+            <div class="text-center py-8 text-gray-500 italic bg-gray-50 rounded-lg">
+                No quiz progress recorded yet.
+            </div>
+          `;
+      }
+
+      quizApp.innerHTML = `
+        <div class="h-full flex flex-col relative">
+           <button onclick="renderAdminDashboard()" class="absolute top-0 left-0 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded-lg text-xs transition duration-150 z-10">
+                ← Back
+           </button>
+           
+           <div class="flex flex-col items-center mt-6 mb-4 w-full">
+                <div class="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center border-4 border-pink-200 mb-2 shadow-sm">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" /> 
+                     </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">${user.name}</h2>
+                <p class="text-sm text-gray-500">${user.email}</p>
+                
+                <div class="flex flex-wrap justify-center gap-2 mt-3 text-xs font-semibold w-full">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full whitespace-nowrap">Quizzes: ${user.quizzesTaken}</span>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full whitespace-nowrap">${user.grade}</span>
+                </div>
+           </div>
+
+           <div class="flex-grow overflow-y-auto px-1 scrollable-students">
+                ${progressHTML}
+           </div>
+           
+           <div class="mt-4 pt-3 border-t">
+                 <button onclick="confirmQuizReset('${user.email}')" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 rounded-lg text-sm transition duration-150 flex items-center justify-center">
+                    Reset Student Data
+                </button>
+           </div>
+        </div>
+      `;
+    }
+
+    function renderAdminDashboard() {
+        stopTimer();
+        headerTitle.textContent = "";
+        const studentUsers = mockUsers.filter(u => u.username !== 'admin'); 
+        const defaultTimeSeconds = quizSettings.defaultTimePerQuestion;
+        
+        const totalMinutesForQuiz = parseFloat(((defaultTimeSeconds * 10) / 60).toFixed(2));
+        
+        const defaultTimeFormatted = formatTime(10 * defaultTimeSeconds); 
+        const timerButtonColor = quizSettings.timerEnabled ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600';
+        const timerButtonText = quizSettings.timerEnabled ? 'ON' : 'OFF';
+
+        quizApp.innerHTML = `
+            <div class="h-full flex flex-col space-y-4">
+                <button onclick="renderWelcomeScreen()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1.5 rounded-lg text-sm transition duration-150">
+                    ← Back
+                </button>
+                <h3 class="text-2xl text-pink-600 font-bold text-center">Settings</h3>
+                
+                <!-- 2x2 Grid for perfect alignment -->
+                <div class="grid grid-cols-[1fr_auto] gap-3 bg-blue-50 p-4 rounded-lg items-center">
+                    
+                    <!-- Row 1 Left: Display -->
+                    <div class="h-10 w-full p-2 border border-gray-200 rounded-lg bg-gray-100 text-sm font-bold text-blue-900 flex items-center justify-center">
+                        10 Qs: ${defaultTimeFormatted}
+                    </div>
+
+                    <!-- Row 1 Right: Toggle Button (w-24 fixed) -->
+                    <button onclick="toggleTimer()" class="h-10 w-24 px-4 text-white font-bold rounded-lg text-sm transition duration-150 ${timerButtonColor} flex items-center justify-center">
+                        ${timerButtonText}
+                    </button>
+
+                    <!-- Row 2 Left: Input -->
+                    <input type="number" id="defaultTimeInput" value="${totalMinutesForQuiz}" 
+                           placeholder="Mins" step="0.5" min="0.5"
+                           class="h-10 w-full p-2 border rounded-lg focus:outline-none focus:border-blue-500 text-sm text-center">
+
+                    <!-- Row 2 Right: Set Button (w-24 fixed) -->
+                    <button onclick="updateDefaultTimer()" class="h-10 w-24 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-sm transition duration-150 flex items-center justify-center">
+                        Set
+                    </button>
+                </div>
+
+                <h3 class="text-2xl text-pink-600 font-bold text-center border-t pt-4">Student Profiles (${studentUsers.length} total)</h3>
+                
+                <div class="scrollable-students flex-grow space-y-4 p-2 bg-gray-50 rounded-lg border">
+                    ${studentUsers.map(user => `
+                        <div onclick="viewStudentProfile('${user.email}')" class="bg-white p-4 rounded-lg shadow-md border-l-4 border-pink-400 cursor-pointer hover:bg-pink-50 transition duration-150 relative group">
+                             <div class="absolute top-4 right-4 text-pink-300 group-hover:text-pink-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                             </div>
+                            <div class="relative flex items-center justify-center mb-2 w-full">
+                                <h4 class="absolute left-0 text-base font-bold text-gray-800 truncate max-w-[50%]">${user.name}</h4>
+                                <span class="text-sm font-semibold text-pink-600">${user.grade}</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Email: <span class="font-medium">${user.email}</span></p>
+                            <p class="text-sm text-gray-600">Quizzes Taken: <span class="font-medium text-lg">${user.quizzesTaken}</span></p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function startQuiz(subject, level) {
+      if (!isAuthenticated) return renderAuthScreen(); 
+      currentSubject = subject;
+      currentLevel = level;
+      currentQuestionIndex = 0;
+      score = 0;
+      quizFinished = false;
+      userAnswers = {}; 
+      startTimer(); 
+      renderQuestion();
+    }
+
+    function renderWelcomeScreen() {
+      stopTimer();
+      if (!isAuthenticated) return renderAuthScreen(); 
+      currentSubject = '';
+      currentLevel = 0;
+      const displayUserName = currentUser.name; 
+      // Changed Emutina to Sofanit
+      headerTitle.textContent = `Welcome Sofanit !`; 
+      
+      quizApp.innerHTML = `
+        <div class="text-center space-y-6 flex flex-col h-full justify-around">
+          <h3 class="text-2xl text-pink-600 font-bold">What would you like to learn today?</h3>
+          <div class="grid grid-cols-2 gap-4">
+            ${subjects.map(subject => `
+              <button onclick="renderLevelSelection('${subject}')" 
+                      class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 rounded-xl shadow-lg transition duration-200 text-lg border-2 border-yellow-600 transform hover:scale-105">
+                ${subject}
+              </button>
+            `).join('')}
+          </div>
+          <button onclick="handleSignOut()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-xl text-md mt-4">
+            Sign Out
+          </button>
+        </div>
+      `;
+    }
+
+    function handleSignOut() {
+        isAuthenticated = false;
+        currentUser = null;
+        alertMessage("Signed out successfully.", 'bg-red-400');
+        renderAuthScreen();
+    }
+    
+    function getLevelCardClass(subject, level) {
+        const user = mockUsers.find(u => u.email === currentUser.email);
+        const progress = user?.levelProgress?.[subject]?.[level] || 0;
+        if (progress >= SUCCESS_THRESHOLD) {
+            return 'bg-green-400 text-white border-green-500 hover:bg-green-500';
+        }
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200';
+    }
+
+    function renderLevelSelection(subject) {
+      stopTimer();
+      if (!isAuthenticated) return renderAuthScreen();
+      currentSubject = subject;
+      headerTitle.textContent = `${subject} - Choose Level`;
+      const levels = Object.keys(quizData[subject]).sort((a, b) => a - b);
+      
+      quizApp.innerHTML = `
+        <div class="text-center space-y-6 flex flex-col h-full justify-between">
+            <button onclick="renderWelcomeScreen()" class="w-1/3 self-start bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1.5 rounded-lg text-sm transition duration-150">
+                ← Go Back
+            </button>
+          <h3 class="text-2xl text-pink-600 font-bold">${subject} Adventures!</h3>
+          <div class="grid grid-cols-5 gap-3 max-h-64 overflow-y-auto p-2 bg-gray-50 rounded-lg border">
+            ${levels.map(level => {
+              const cardClass = getLevelCardClass(subject, level);
+              const user = mockUsers.find(u => u.email === currentUser.email);
+              const progress = user?.levelProgress?.[subject]?.[level] || 0;
+              const isCompleted = progress >= SUCCESS_THRESHOLD;
+              const action = isCompleted 
+                ? `openModal('retake_level')` 
+                : `startQuiz('${subject}', ${level})`;
+              return `
+                <button onclick="${action}"
+                        class="font-bold py-3 rounded-lg shadow transition duration-150 transform hover:scale-105 ${cardClass} border-2">
+                  Lvl ${level}
+                  ${isCompleted ? ' <span class="text-xs">✔</span>' : ''}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuestion() {
+      if (!isAuthenticated) return renderAuthScreen();
+      const questions = quizData[currentSubject][currentLevel];
+      if (!questions || currentQuestionIndex >= questions.length) {
+        return renderResults();
+      }
+
+      const q = questions[currentQuestionIndex];
+      // Changed to display questions info after title
+      headerTitle.textContent = `${currentSubject} Lvl ${currentLevel} | Q ${currentQuestionIndex + 1} of ${questions.length}`;
+
+      const existingAnswer = userAnswers[currentQuestionIndex];
+      const answeredClass = existingAnswer ? 'pointer-events-none opacity-90' : '';
+
+      quizApp.innerHTML = `
+        <div class="space-y-6 flex flex-col h-full justify-between">
+          <button onclick="renderLevelSelection(currentSubject)" class="w-1/3 self-start bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1.5 rounded-lg text-sm transition duration-150">
+            Exit
+          </button>
+          
+          <div>
+            <p class="text-xl font-semibold text-gray-800 mb-6 text-center">${q.question}</p>
+            <div class="quiz-options grid grid-cols-1 gap-3 ${answeredClass}">
+              ${q.options.map((option, index) => {
+                  let btnClass = "p-3 bg-blue-100 text-blue-800 font-medium rounded-lg text-lg border-2 border-blue-300 hover:bg-blue-200";
+                  
+                  if (existingAnswer) {
+                      if (option === q.answer) {
+                          btnClass = "p-3 bg-green-400 text-white border-green-500 font-bold rounded-lg text-lg border-2";
+                      } else if (option === existingAnswer) {
+                          btnClass = "p-3 bg-red-400 text-white border-red-500 font-bold rounded-lg text-lg border-2";
+                      } else {
+                          btnClass = "p-3 bg-gray-100 text-gray-400 border-gray-200 rounded-lg text-lg border-2";
+                      }
+                  }
+
+                  return `
+                    <button
+                      onclick="selectOption('${option}')"
+                      class="${btnClass}"
+                      data-option="${option}"
+                      ${existingAnswer ? 'disabled' : ''}
+                    >
+                      ${option}
+                    </button>
+                  `;
+              }).join('')}
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center mt-4 border-t pt-3">
+             <button onclick="prevQuestion()" 
+                class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                ← Back
+             </button>
+             
+             <button onclick="nextQuestion()" 
+                class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-lg shadow">
+                Next →
+             </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectOption(selectedOption) {
+      if (!isAuthenticated) return renderAuthScreen();
+      if (userAnswers[currentQuestionIndex]) return;
+
+      const questions = quizData[currentSubject][currentLevel];
+      const q = questions[currentQuestionIndex];
+      
+      userAnswers[currentQuestionIndex] = selectedOption;
+
+      if (selectedOption === q.answer) {
+        score++;
+      }
+      renderQuestion();
+    }
+    
+    function nextQuestion() {
+        const questions = quizData[currentSubject][currentLevel];
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        } else {
+            renderResults();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    }
+
+    function renderResults(isTimeout = false) {
+      stopTimer();
+      if (!isAuthenticated) return renderAuthScreen();
+      quizFinished = true;
+      const total = quizData[currentSubject][currentLevel].length;
+      const percent = Math.round((score / total) * 100);
+      let message = '';
+      let emoji = '';
+      let color = '';
+
+      const userIndex = mockUsers.findIndex(u => u.email === currentUser.email);
+      if (userIndex !== -1) {
+          mockUsers[userIndex].quizzesTaken += 1;
+          mockUsers[userIndex].lastAttempt = {
+              subject: currentSubject,
+              level: currentLevel,
+              score: score,
+              date: new Date().toISOString()
+          };
+          if (!mockUsers[userIndex].levelProgress[currentSubject]) {
+              mockUsers[userIndex].levelProgress[currentSubject] = {};
+          }
+          const currentBestScore = mockUsers[userIndex].levelProgress[currentSubject][currentLevel] || 0;
+          if (score > currentBestScore) {
+             mockUsers[userIndex].levelProgress[currentSubject][currentLevel] = score;
+          }
+          saveUsers();
+      }
+
+      if (isTimeout) {
+          message = "Time ran out! Let's see your score!";
+          emoji = '⏱️';
+          color = 'text-orange-600';
+      } else if (percent === 100) {
+        message = "Congratulations !! You scored an A!";
+        emoji = '🏆';
+        // Using the new brightGreen color for A grade
+        color = 'text-brightGreen'; 
+      } else if (percent >= 80) {
+        message = "Congratulations !! You scored a B!";
+        emoji = '🌟';
+        // Using the new brightGreen color for B grade
+        color = 'text-brightGreen'; 
+      } else if (percent >= 75) {
+        message = "Congratulations !! You scored a C!";
+        emoji = '👍';
+        color = 'text-green-500'; 
+      } else {
+        message = "You scored an F. Try Again!";
+        emoji = '📚';
+        color = 'text-red-600'; 
+      }
+
+      headerTitle.textContent = "Level Complete!";
+      quizApp.innerHTML = `
+        <div class="text-center space-y-6 flex flex-col justify-center h-full">
+          <h3 class="text-3xl font-extrabold ${color}">${message}</h3>
+          <p class="text-5xl">${emoji}</p>
+          <p class="text-xl text-gray-700">You scored <span class="font-bold text-4xl text-blue-600">${score}</span> out of ${total}!</p>
+          <div class="mt-8 pt-4 border-t border-gray-200 space-y-3">
+            <button onclick="openModal('retake')" class="w-full bg-red-400 hover:bg-red-500 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200 text-lg">
+                Require Admin to Retake Quiz
+            </button>
+            <button onclick="renderLevelSelection(currentSubject)" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200 text-lg">
+              Go Back to Levels
+            </button>
+            <button onclick="renderWelcomeScreen()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200 text-lg">
+              Change Subject
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function alertMessage(message, bgColor) {
+        const existingAlert = document.getElementById('customAlert');
+        if (existingAlert) existingAlert.remove();
+        const alertDiv = document.createElement('div');
+        alertDiv.id = 'customAlert';
+        alertDiv.className = `${bgColor} fixed top-5 left-1/2 -translate-x-1/2 text-white font-semibold py-3 px-6 rounded-lg shadow-xl transition-opacity duration-300 ease-in-out z-50`;
+        alertDiv.textContent = message;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers(); 
+      loadSettings(); 
+      renderAuthScreen(); 
+      const adminButton = document.getElementById('resetQuizButton');
+      if (adminButton) {
+          adminButton.removeAttribute('onclick'); 
+          adminButton.addEventListener('click', () => openModal('dashboard')); 
+      }
+      passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          checkAdminPassword();
+        }
+      });
+    });
+
+  </script>
+</body>
+</html>
