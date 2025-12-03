@@ -236,7 +236,9 @@
         defaultTimePerQuestion: 60 
     };
     let timeLeft = 0;
-    let pendingAdminAction = ''; 
+    let pendingAdminAction = '';
+    // NEW: Variable to track which student is being reset
+    let pendingTargetEmail = ''; 
 
     function loadUsers() {
         try {
@@ -279,7 +281,7 @@
     // --- Quiz Data Structure (Fully Populated per Grade 1 MD Curriculum) ---
     var quizData = {
       "Math": {
-        1: [ // Basic Addition/Subtraction (0-10)
+        1: [ 
           { question: "What is 2 + 2?", options: ["4", "5", "3"], answer: "4", hint: "Fingers on one hand minus thumb." },
           { question: "Count the dots: ● ● ●", options: ["2", "3", "4"], answer: "3", hint: "One, two..." },
           { question: "5 - 1 = ?", options: ["4", "6", "5"], answer: "4", hint: "One less than five." },
@@ -291,7 +293,7 @@
           { question: "4 + 1 = ?", options: ["4", "5", "6"], answer: "5", hint: "High five." },
           { question: "How many eyes do you have?", options: ["1", "2", "3"], answer: "2", hint: "Look in the mirror." }
         ],
-        2: [ // Sums to 20, Intro to Money & Time
+        2: [ 
           { question: "What is 10 + 5?", options: ["15", "50", "5"], answer: "15", hint: "One ten and five ones." },
           { question: "Which coin is brown?", options: ["Dime", "Penny", "Nickel"], answer: "Penny", hint: "Worth 1 cent." },
           { question: "12 - 2 = ?", options: ["10", "14", "1"], answer: "10", hint: "Take away the ones." },
@@ -303,7 +305,7 @@
           { question: "Count by 10s: 10, 20, 30, _", options: ["31", "40", "50"], answer: "40", hint: "Four tens." },
           { question: "Which is a 3D shape?", options: ["Square", "Cube", "Circle"], answer: "Cube", hint: "Like a box." }
         ],
-        3: [ // Number Lines & Geometry 20%
+        3: [
           { question: "Number Line: Start at 5. Hop forward 3. Where are you?", options: ["7", "8", "9"], answer: "8", hint: "5 + 3." },
           { question: "How many corners does a square have?", options: ["3", "4", "5"], answer: "4", hint: "Count them." },
           { question: "8 + 9 = ?", options: ["16", "17", "18"], answer: "17", hint: "Almost 9+9." },
@@ -315,7 +317,7 @@
           { question: "3 + 3 + 3 = ?", options: ["6", "9", "12"], answer: "9", hint: "Skip count by 3." },
           { question: "Is 15 Odd or Even?", options: ["Odd", "Even"], answer: "Odd", hint: "Ends in 5." }
         ],
-        4: [ // 3-Number Addition & Measurement
+        4: [ 
           { question: "Add: 4 + 4 + 2", options: ["8", "10", "12"], answer: "10", hint: "4+4 is 8, then add 2." },
           { question: "Add: 5 + 5 + 5", options: ["10", "15", "20"], answer: "15", hint: "Count by 5s." },
           { question: "Add: 8 + 2 + 3", options: ["10", "13", "15"], answer: "13", hint: "Make a ten first (8+2)." },
@@ -327,7 +329,7 @@
           { question: "Which is heavier? A car or a feather?", options: ["Car", "Feather"], answer: "Car", hint: "Big metal." },
           { question: "Add: 7 + 3 + 4", options: ["10", "14", "17"], answer: "14", hint: "7+3 makes 10." }
         ],
-        5: [ // Advanced Review (Word Problems, Geo, Money)
+        5: [
           { question: "Ben has 2 dimes and 1 penny. How much money?", options: ["3 cents", "21 cents", "25 cents"], answer: "21 cents", hint: "10 + 10 + 1." },
           { question: "8 + 9 + 5 = ?", options: ["20", "22", "25"], answer: "22", hint: "8+9=17, 17+5=..." },
           { question: "Geometry: Partition a circle into 2 equal parts. Each is a...", options: ["Quarter", "Half", "Whole"], answer: "Half", hint: "1 out of 2." },
@@ -346,7 +348,7 @@
         10: Array(10).fill({ question: "Math Level 10 Placeholder?", options: ["A", "B", "C"], answer: "A", hint: "Keep working hard!" })
       },
       "Reading": {
-        1: [ // Phonics & Alphabet
+        1: [ 
           { question: "What letter does 'Dog' start with?", options: ["C", "D", "G"], answer: "D", hint: "Duh sound." },
           { question: "Which is a lowercase letter?", options: ["A", "M", "t"], answer: "t", hint: "Small letter." },
           { question: "Find the vowel.", options: ["b", "c", "a"], answer: "a", hint: "a, e, i, o, u." },
@@ -358,7 +360,7 @@
           { question: "Is 'Z' at the beginning or end of the alphabet?", options: ["Beginning", "End"], answer: "End", hint: "Last one." },
           { question: "How many letters in 'Me'?", options: ["1", "2", "3"], answer: "2", hint: "Count them." }
         ],
-        2: [ // Blends & Sight Words
+        2: [ 
           { question: "What sound does 'Sh' make?", options: ["Ch", "Shh", "Th"], answer: "Shh", hint: "Quiet sound." },
           { question: "Complete: The cat is ___ the hat.", options: ["in", "run", "blue"], answer: "in", hint: "Location." },
           { question: "Rhyme: Frog and...", options: ["Log", "Pig", "Fly"], answer: "Log", hint: "Og sound." },
@@ -370,7 +372,7 @@
           { question: "Plural means...", options: ["One", "More than one"], answer: "More than one", hint: "Many." },
           { question: "Add 's' to make plural: Cat -> ?", options: ["Cates", "Cats", "Cat"], answer: "Cats", hint: "Two of them." }
         ],
-        3: [ // Sentences & Comprehension
+        3: [
           { question: "A sentence starts with a...", options: ["Period", "Capital Letter", "Number"], answer: "Capital Letter", hint: "Big letter." },
           { question: "A sentence ends with a...", options: ["Period", "Letter", "Comma"], answer: "Period", hint: "Dot." },
           { question: "Who writes the words in a book?", options: ["Author", "Illustrator"], answer: "Author", hint: "Writer." },
@@ -382,7 +384,7 @@
           { question: "Which is a Noun?", options: ["Run", "Ball", "Blue"], answer: "Ball", hint: "You can touch it." },
           { question: "Which is a Verb?", options: ["Jump", "Cat", "Red"], answer: "Jump", hint: "You do it." }
         ],
-        4: [ // Grammar & Story Elements
+        4: [
           { question: "Past tense of 'Run'?", options: ["Runned", "Ran"], answer: "Ran", hint: "Yesterday I..." },
           { question: "Opposite of 'Happy'?", options: ["Sad", "Glad", "Fun"], answer: "Sad", hint: "Tears." },
           { question: "Fiction means...", options: ["Real", "Make-believe"], answer: "Make-believe", hint: "Story." },
@@ -394,7 +396,7 @@
           { question: "Characters are...", options: ["The place", "The people/animals"], answer: "The people/animals", hint: "Who is in the story." },
           { question: "Which word rhymes with 'Night'?", options: ["Bright", "Day", "Net"], answer: "Bright", hint: "Ight sound." }
         ],
-        5: [ // Advanced Reading Grade 1
+        5: [
           { question: "Main Idea means...", options: ["First word", "What story is mostly about", "The end"], answer: "What story is mostly about", hint: "Big picture." },
           { question: "Retell means...", options: ["Read again", "Tell story in own words", "Stop"], answer: "Tell story in own words", hint: "Summary." },
           { question: "Synonym for 'Small'?", options: ["Big", "Little", "Huge"], answer: "Little", hint: "Same meaning." },
@@ -725,10 +727,19 @@
     
     function openModal(actionType = 'dashboard') {
       pendingAdminAction = actionType;
+      // Reset modal styling for standard actions
+      modalActionButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+      modalActionButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+
       if (actionType === 'retake' || actionType === 'retake_level') {
           modalTitle.textContent = "Admin Quiz Retake Required";
           modalMessage.textContent = `Only an admin can authorize a quiz retake. Enter the password to reset this quiz for ${currentUser.name}.`;
           modalActionButton.textContent = "Authorize Retake";
+      } else if (actionType === 'reset_student') {
+          // Handled by confirmQuizReset, but just in case
+          modalTitle.textContent = "Admin Reset Required";
+          modalMessage.textContent = "Enter password to confirm reset.";
+          modalActionButton.textContent = "Confirm Reset";
       } else {
           modalTitle.textContent = "Admin Dashboard Required";
           modalMessage.textContent = "To access the Admin Dashboard, please enter the special password.";
@@ -744,6 +755,27 @@
       }, 10);
     }
 
+    function confirmQuizReset(email) {
+        pendingTargetEmail = email;
+        pendingAdminAction = 'reset_student';
+        
+        modalTitle.textContent = "⚠ Permanent Data Reset ⚠";
+        modalMessage.textContent = "This will permanently delete all progress for this student. Are you sure?";
+        modalActionButton.textContent = "Confirm Reset";
+        // Change button to red for warning
+        modalActionButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+        modalActionButton.classList.add('bg-red-500', 'hover:bg-red-600');
+        
+        modal.style.display = 'flex';
+        passwordInput.value = ''; 
+        passwordError.classList.add('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+            passwordInput.focus();
+        }, 10);
+    }
+
     function closeModal() {
       modalContent.classList.remove('scale-100', 'opacity-100');
       modalContent.classList.add('scale-95', 'opacity-0');
@@ -752,6 +784,9 @@
         passwordInput.value = '';
         passwordError.classList.add('hidden');
         pendingAdminAction = ''; 
+        // Reset button color back to blue default
+        modalActionButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+        modalActionButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
       }, 300);
     }
 
@@ -765,6 +800,24 @@
         } 
         else if (pendingAdminAction === 'dashboard') {
             renderAdminDashboard(); 
+        }
+        else if (pendingAdminAction === 'reset_student') {
+            const userIndex = mockUsers.findIndex(u => u.email === pendingTargetEmail);
+            if (userIndex !== -1) {
+                mockUsers[userIndex].quizzesTaken = 0;
+                mockUsers[userIndex].lastAttempt = null;
+                mockUsers[userIndex].levelProgress = {};
+                saveUsers();
+                // If we are currently viewing that profile, refresh it
+                // Otherwise just show success message
+                const currentView = document.querySelector('.scrollable-students') ? 'dashboard' : 'profile';
+                if (currentView === 'profile') {
+                     viewStudentProfile(pendingTargetEmail);
+                } else {
+                     renderAdminDashboard();
+                }
+                alertMessage("Student data has been permanently reset.", 'bg-red-500');
+            }
         }
         alertMessage("Admin Access Granted.", 'bg-indigo-500');
       } else {
