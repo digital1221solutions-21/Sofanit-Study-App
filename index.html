@@ -194,7 +194,7 @@
         <div class="modal-content transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
           <h4 id="modalTitle" class="text-xl font-bold text-gray-800 mb-4 text-center">Admin Password Required</h4>
           <p id="modalMessage" class="text-gray-600 mb-4 text-sm text-center">To access the Admin Dashboard or reset a quiz, please enter the special password.</p>
-          <input type="password" id="passwordInput" class="w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:border-yellow-500 mb-4 text-lg" placeholder="Enter admin123">
+          <input type="password" id="passwordInput" class="w-full p-3 border-2 border-yellow-300 rounded-lg focus:outline-none focus:border-yellow-500 mb-4 text-lg" placeholder="Auth-code">
           <div class="flex justify-end space-x-3">
             <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
             <button onclick="checkAdminPassword()" id="modalActionButton" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-150">Access Dashboard</button>
@@ -215,6 +215,76 @@
   </div>
 
   <script>
+    function generateDeviceFingerprint() {
+  let fingerprintData = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width,
+    screen.height,
+    screen.colorDepth,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency || "NA",
+    Math.random().toString(36).substring(2, 15) // random salt
+  ];
+
+  // Hash-like string
+  return btoa(fingerprintData.join("|"));
+}
+
+// Create or retrieve device ID
+function getOrCreateDeviceID() {
+  let stored = localStorage.getItem("device_id");
+  if (stored) return stored;
+
+  let newID = generateDeviceFingerprint();
+  localStorage.setItem("device_id", newID);
+  return newID;
+}
+
+// --------------------------------------
+// 🔐 ACCESS CONTROL (Admin Authentication)
+// --------------------------------------
+const authorizedDevices = JSON.parse(localStorage.getItem("authorized_devices") || "[]");
+
+function requestAdminAccess(deviceID) {
+  let password = prompt("🔐 New Device Detected!\nPlease enter ADMIN password to approve this device:");
+
+  // CHANGE THIS PASSWORD to your real admin password
+  const ADMIN_PASSWORD = "21@21";  
+
+  if (password === ADMIN_PASSWORD) {
+    authorizedDevices.push(deviceID);
+    localStorage.setItem("authorized_devices", JSON.stringify(authorizedDevices));
+    alert("✔ Device approved. Access granted.");
+    return true;
+  } else {
+    alert("❌ Incorrect password. Access denied.");
+    return false;
+  }
+}
+
+function checkAccess() {
+  const deviceID = getOrCreateDeviceID();
+
+  if (authorizedDevices.includes(deviceID)) {
+    console.log("ACCESS OK — Approved device:", deviceID);
+    return true;
+  }
+
+  // Ask admin if new device
+  return requestAdminAccess(deviceID);
+}
+
+// --------------------------------------
+// 🚨 BLOCK PAGE IF NOT AUTHORIZED
+// --------------------------------------
+if (!checkAccess()) {
+  document.body.innerHTML = `
+      <h2 style="color:red;text-align:center;margin-top:50px;">
+        ❌ Access Forbidden — Device Not Authorized
+      </h2>
+  `;
+}
     let isAuthenticated = false;
     let currentUser = null; 
     let mockUsers = []; 
